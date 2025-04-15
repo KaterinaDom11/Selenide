@@ -9,14 +9,14 @@ import org.openqa.selenium.Keys;
 
 import java.time.Duration;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
+
+
 
 import static com.codeborne.selenide.Selectors.withText;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 class OrderingСardTest {
 
@@ -28,7 +28,6 @@ class OrderingСardTest {
     @Test
     void sendCardAeliveryForm() {
 
-
         Selenide.open("http://localhost:9999/");
         SelenideElement formElement = $("form");
         formElement.$("[placeholder='Город']").setValue("Москва");
@@ -39,39 +38,25 @@ class OrderingСardTest {
         formElement.$("[name='phone']").setValue("+79012345678");
         formElement.$("label").click();
         $(withText("Забронировать")).click();
-        $(withText("Успешно")).should(Condition.visible, Duration.ofSeconds(15));
-        String actualNotificationContent = $("[class='notification__content']").getText(); //Извлечение текста уведомления:
-        assertTrue(actualNotificationContent.contains(expectedDate), "Дата в уведомлении совпадает с ожидаемой."); //сравнение даты из формы и окна
-
+        $(Selectors.withText("Успешно")).should(Condition.visible, Duration.ofSeconds(15));
+        $("[class='notification__content']").shouldHave(Condition.text(expectedDate)).shouldBe(Condition.visible);
     }
 
     @Test
     void interactionWithComplexElements() {
-        String datePattern = "dd.MM.yyyy"; // Замените на нужный формат, если он другой
-        String expectedDateString = generateDate(7, datePattern);
-
-        LocalDate expectedLocalDate = LocalDate.now().plusDays(7);
-        Date expectedDate = Date.from(expectedLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        long expectedTimestamp = expectedDate.getTime();
-
         Selenide.open("http://localhost:9999/");
         SelenideElement formElement = $("form");
         formElement.$("[placeholder='Город']").setValue("Ка");
-        $$("body").find(Condition.text("Калуга")).should(Condition.visible, Duration.ofSeconds(15)).$(withText("Калуга")).click();
+        $$("[class='popup__content'").find(Condition.text("Калуга")).click();
         formElement.$("[name='name']").setValue("Иванов Иван");
-
-
         formElement.$("[placeholder='Дата встречи']").click();
-        SelenideElement calendarPopup = $(".popup_direction_bottom-left").shouldBe(Condition.visible, Duration.ofSeconds(15));
-        SelenideElement dateElement = calendarPopup.$("[data-day='" + expectedTimestamp + "']")
-                .shouldBe(Condition.visible, Duration.ofSeconds(15));
-        dateElement.click();
+        if (!generateDate(3, "MM").equals(generateDate(7, "MM"))) $("calendar__name").click();
+        $$(".calendar__day").findBy(Condition.exactText(generateDate(7, "d"))).click();
         formElement.$("[name='phone']").setValue("+79012345678");
         formElement.$("label").click();
         $(withText("Забронировать")).click();
-        $(withText("Успешно")).should(Condition.visible, Duration.ofSeconds(15));
-        String actualNotificationContent = $("[class='notification__content']").getText(); //Извлечение текста уведомления:
-        assertTrue(actualNotificationContent.contains(expectedDateString), "Дата в уведомлении совпадает с ожидаемой.");
+        $(Selectors.withText("Успешно")).should(Condition.visible, Duration.ofSeconds(15));
+        $("[class='notification__content']").shouldHave(Condition.text(generateDate(7, "dd.MM.yyyy"))).shouldBe(Condition.visible);
 
     }
 
